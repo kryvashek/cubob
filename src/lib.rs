@@ -1,5 +1,5 @@
 use core::{
-    fmt::{Debug, DebugSet, Display, Formatter, Result as FmtResult},
+    fmt::{Debug, DebugSet, DebugList, Display, Formatter, Result as FmtResult},
     format_args,
 };
 
@@ -35,8 +35,6 @@ impl<'a, K: Debug + ?Sized, V: Debug + ?Sized> Debug for Field<'a, K, V> {
 type StructEntrier<'t> = &'t dyn Fn(&mut DebugSet<'_, '_>, &dyn Display, &dyn Display);
 
 pub struct StructShow<'a, 'b> {
-    // DebugMap навешивает на ключи (имена полей) кавычки, а DebugStruct требует и указывает имя структуры.
-    // Всё это - лишнее при Display-выводе, поэтому используется DebugSet.
     wrapper: DebugSet<'a, 'b>,
     entrier: StructEntrier<'static>,
 }
@@ -88,6 +86,62 @@ impl<'a, 'b> StructShow<'a, 'b> {
 
 pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Display)]) -> FmtResult {
     StructShow::new(f).fields(fields).finish()
+}
+
+type ListEntrier<'t> = &'t dyn Fn(&mut DebugList<'_, '_>, &dyn Display);
+
+pub struct ListShow<'a, 'b> {
+    wrapper: DebugList<'a, 'b>,
+    entrier: ListEntrier<'static>,
+}
+
+impl<'a, 'b> ListShow<'a, 'b> {
+    const USUAL_ENTRIER: ListEntrier<'static> = &|w, v| {
+        w.entry(&format_args!("{}", v));
+    };
+    const ALT_ENTRIER: ListEntrier<'static> = &|w,v| {
+        w.entry(&format_args!("{:#}", v));
+    };
+    const NULL_ENTRIER: ListEntrier<'static> = &|_w, _v| {};
+
+    pub fn new(formatter: &'a mut Formatter<'b>) -> Self {
+        let entrier = match formatter.alternate() {
+            true => Self::ALT_ENTRIER,
+            false => Self::USUAL_ENTRIER,
+        };
+        Self {
+            wrapper: formatter.debug_list(),
+            entrier,
+        }
+    }
+
+    pub fn item(&mut self, val: &dyn Display) -> &mut Self {
+        (self.entrier)(&mut self.wrapper, val);
+        self
+    }
+
+    pub fn item_opt<T: Display>(&mut self, val: &Option<T>) -> &mut Self {
+        if let Some(actual_value) = val {
+            self.item(actual_value);
+        }
+        self
+    }
+
+    pub fn finish(&mut self) -> FmtResult {
+        self.entrier = Self::NULL_ENTRIER;
+        self.wrapper.finish()
+    }
+
+    pub fn items(&mut self, entries: &[&dyn Display]) -> &mut Self {
+        entries.iter().for_each(|val| {
+            (self.entrier)(&mut self.wrapper, val);
+        });
+        self
+    }
+}
+
+pub fn display_list(f: &mut Formatter<'_>, entries: &[&dyn Display]) -> FmtResult {
+    ListShow::new(f).items(entries).finish()
 }
 
 #[cfg(test)]
@@ -150,6 +204,22 @@ mod tests {
         }
     }
 
+    struct Array4 {
+        one: Integer,
+        two: isize,
+        three: char,
+        four: Option<char>,
+    }
+
+    impl Display for Array4 {
+        fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+            ListShow::new(f)
+                .items(&[&self.one, &self.two, &self.three])
+                .item_opt(&self.four)
+                .finish()
+        }
+    }
+
     #[test]
     fn display() {
         assert_eq!("key: value", &format!("{}", Field::new("key", "value")));
@@ -188,6 +258,24 @@ mod tests {
                     g: Complex::new(-3, 4)
                 }
             )
+        );
+        assert_eq!(
+            "['1', 2, c, s]",
+            &format!("{}", Array4{
+                one: Integer(1),
+                two: 2,
+                three: 'c',
+                four: Some('s'),
+            })
+        );
+        assert_eq!(
+            "['3', 4, d]",
+            &format!("{}", Array4{
+                one: Integer(3),
+                two: 4,
+                three: 'd',
+                four: None,
+            })
         );
     }
 
@@ -256,6 +344,33 @@ mod tests {
                     g: Complex::new(-3, 4)
                 }
             )
+        );
+        assert_eq!(
+            r#"[
+    Integer value '5',
+    6,
+    e,
+]"#,
+            &format!("{:#}", Array4{
+                one: Integer(5),
+                two: 6,
+                three: 'e',
+                four: None,
+            })
+        );
+        assert_eq!(
+            r#"[
+    Integer value '7',
+    8,
+    f,
+    g,
+]"#,
+            &format!("{:#}", Array4{
+                one: Integer(7),
+                two: 8,
+                three: 'f',
+                four: Some('g'),
+            })
         );
     }
 
