@@ -1,14 +1,63 @@
+//! Some primitives to simplify implementation of structured data output in display mode.
+//! Usage example:
+//! ```
+//! use core::fmt::{Display, Formatter, Result as FmtResult};
+//! use cubob::display_struct;
+//! 
+//! struct Point {
+//!     x: i32,
+//!     y: i32,
+//! }
+//! 
+//! struct Line {
+//!     a: Point,
+//!     b: Point,
+//! }
+//!
+//! impl Display for Point {
+//!     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+//!         display_struct(
+//!             f,
+//!             &[
+//!                 (&"x", &self.x),
+//!                 (&"y", &self.y),
+//!             ],
+//!         )
+//!     }
+//! }
+//!
+//! impl Display for Line {
+//!     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+//!         display_struct(
+//!             f,
+//!             &[
+//!                 (&"a", &self.a),
+//!                 (&"b", &self.b),
+//!             ],
+//!         )
+//!     }
+//! }
+//! 
+//! fn main() {
+//!     let line = Line{ a: Point{ x: 0, y: 0}, b: Point{ x: 1, y: 1} };
+//!     println!("One-line: {}", line);
+//!     println!("Prettified: {:#}", line);
+//! }
+//! ```
+
 use core::{
     fmt::{Debug, DebugList, DebugSet, Display, Formatter, Result as FmtResult},
     format_args,
 };
 
+/// Lets to output key-value pair regarding the propagated value of output alternativeness.
 pub struct Field<'a, K: ?Sized, V: ?Sized> {
     key: &'a K,
     val: &'a V,
 }
 
 impl<'a, K: ?Sized, V: ?Sized> Field<'a, K, V> {
+    /// Creates one Field examplar ready to be outputted.
     pub fn new(key: &'a K, val: &'a V) -> Self {
         Self { key, val }
     }
@@ -34,6 +83,7 @@ impl<'a, K: Debug + ?Sized, V: Debug + ?Sized> Debug for Field<'a, K, V> {
 
 type StructEntrier<'t> = &'t dyn Fn(&mut DebugSet<'_, '_>, &dyn Display, &dyn Display);
 
+/// Lets to output some structure regarding the propagated value of output alternativeness.
 pub struct StructShow<'a, 'b> {
     wrapper: DebugSet<'a, 'b>,
     entrier: StructEntrier<'static>,
@@ -48,6 +98,7 @@ impl<'a, 'b> StructShow<'a, 'b> {
     };
     const NULL_ENTRIER: StructEntrier<'static> = &|_w, _k, _v| {};
 
+    /// Creates one StructShow examplar starting its output.
     pub fn new(formatter: &'a mut Formatter<'b>) -> Self {
         let entrier = match formatter.alternate() {
             true => Self::ALT_ENTRIER,
@@ -59,11 +110,13 @@ impl<'a, 'b> StructShow<'a, 'b> {
         }
     }
 
+    /// Adds one key-value pair to the struct output.
     pub fn field(&mut self, key: &dyn Display, val: &dyn Display) -> &mut Self {
         (self.entrier)(&mut self.wrapper, key, val);
         self
     }
 
+    /// Adds one optional key-value pair to the struct output if its value matches Some(_).
     pub fn field_opt<T: Display>(&mut self, key: &dyn Display, val: &Option<T>) -> &mut Self {
         if let Some(actual_value) = val {
             self.field(key, actual_value);
@@ -71,11 +124,13 @@ impl<'a, 'b> StructShow<'a, 'b> {
         self
     }
 
+    /// Finishes the struct output, returning the result.
     pub fn finish(&mut self) -> FmtResult {
         self.entrier = Self::NULL_ENTRIER;
         self.wrapper.finish()
     }
 
+    /// Adds several key-value pair to the struct output.
     pub fn fields(&mut self, fields: &[(&dyn Display, &dyn Display)]) -> &mut Self {
         fields.iter().for_each(|(key, val)| {
             (self.entrier)(&mut self.wrapper, key, val);
@@ -84,12 +139,14 @@ impl<'a, 'b> StructShow<'a, 'b> {
     }
 }
 
+/// Performs the whole struct output routine from creation of StructShow examplar to finishing (for example see the module-level documentation).
 pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Display)]) -> FmtResult {
     StructShow::new(f).fields(fields).finish()
 }
 
 type ListEntrier<'t> = &'t dyn Fn(&mut DebugList<'_, '_>, &dyn Display);
 
+/// Lets to output some listed data regarding the propagated value of output alternativeness.
 pub struct ListShow<'a, 'b> {
     wrapper: DebugList<'a, 'b>,
     entrier: ListEntrier<'static>,
@@ -104,6 +161,7 @@ impl<'a, 'b> ListShow<'a, 'b> {
     };
     const NULL_ENTRIER: ListEntrier<'static> = &|_w, _v| {};
 
+    /// Creates one ListShow examplar starting its output.
     pub fn new(formatter: &'a mut Formatter<'b>) -> Self {
         let entrier = match formatter.alternate() {
             true => Self::ALT_ENTRIER,
@@ -115,11 +173,13 @@ impl<'a, 'b> ListShow<'a, 'b> {
         }
     }
 
+    /// Adds one item to the list output.
     pub fn item(&mut self, val: &dyn Display) -> &mut Self {
         (self.entrier)(&mut self.wrapper, val);
         self
     }
 
+    /// Adds one optional item to the list output if its value matches Some(_).
     pub fn item_opt<T: Display>(&mut self, val: &Option<T>) -> &mut Self {
         if let Some(actual_value) = val {
             self.item(actual_value);
@@ -127,11 +187,13 @@ impl<'a, 'b> ListShow<'a, 'b> {
         self
     }
 
+    /// Finishes the list output, returning the result.
     pub fn finish(&mut self) -> FmtResult {
         self.entrier = Self::NULL_ENTRIER;
         self.wrapper.finish()
     }
 
+    /// Adds several items to the list output.
     pub fn items(&mut self, entries: &[&dyn Display]) -> &mut Self {
         entries.iter().for_each(|val| {
             (self.entrier)(&mut self.wrapper, val);
@@ -140,6 +202,7 @@ impl<'a, 'b> ListShow<'a, 'b> {
     }
 }
 
+/// Performs the whole list output routine from creation of ListShow examplar to finishing.
 pub fn display_list(f: &mut Formatter<'_>, entries: &[&dyn Display]) -> FmtResult {
     ListShow::new(f).items(entries).finish()
 }
