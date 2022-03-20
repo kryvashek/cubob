@@ -1,0 +1,13 @@
+[package]
+name = "cubob"
+version = "0.1.0"
+edition = "2018"
+authors = ["Artyom Sakharilenko <kryvashek@gmail.com>"]
+description = "Display mode structured output helpes"
+repository = "https://github.com/kryvashek/cubob"
+license = "MIT"
+keywords = ["output", "display", "structure", "pretty"]
+categories = ["command-line-interface", "no-std", "rust-patterns"]
+
+[lib]
+crate-type = ["staticlib", "rlib"]
