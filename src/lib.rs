@@ -1,5 +1,5 @@
 use core::{
-    fmt::{Debug, DebugSet, DebugList, Display, Formatter, Result as FmtResult},
+    fmt::{Debug, DebugList, DebugSet, Display, Formatter, Result as FmtResult},
     format_args,
 };
 
@@ -99,7 +99,7 @@ impl<'a, 'b> ListShow<'a, 'b> {
     const USUAL_ENTRIER: ListEntrier<'static> = &|w, v| {
         w.entry(&format_args!("{}", v));
     };
-    const ALT_ENTRIER: ListEntrier<'static> = &|w,v| {
+    const ALT_ENTRIER: ListEntrier<'static> = &|w, v| {
         w.entry(&format_args!("{:#}", v));
     };
     const NULL_ENTRIER: ListEntrier<'static> = &|_w, _v| {};
@@ -261,21 +261,27 @@ mod tests {
         );
         assert_eq!(
             "['1', 2, c, s]",
-            &format!("{}", Array4{
-                one: Integer(1),
-                two: 2,
-                three: 'c',
-                four: Some('s'),
-            })
+            &format!(
+                "{}",
+                Array4 {
+                    one: Integer(1),
+                    two: 2,
+                    three: 'c',
+                    four: Some('s'),
+                }
+            )
         );
         assert_eq!(
             "['3', 4, d]",
-            &format!("{}", Array4{
-                one: Integer(3),
-                two: 4,
-                three: 'd',
-                four: None,
-            })
+            &format!(
+                "{}",
+                Array4 {
+                    one: Integer(3),
+                    two: 4,
+                    three: 'd',
+                    four: None,
+                }
+            )
         );
     }
 
@@ -351,12 +357,15 @@ mod tests {
     6,
     e,
 ]"#,
-            &format!("{:#}", Array4{
-                one: Integer(5),
-                two: 6,
-                three: 'e',
-                four: None,
-            })
+            &format!(
+                "{:#}",
+                Array4 {
+                    one: Integer(5),
+                    two: 6,
+                    three: 'e',
+                    four: None,
+                }
+            )
         );
         assert_eq!(
             r#"[
@@ -365,12 +374,15 @@ mod tests {
     f,
     g,
 ]"#,
-            &format!("{:#}", Array4{
-                one: Integer(7),
-                two: 8,
-                three: 'f',
-                four: Some('g'),
-            })
+            &format!(
+                "{:#}",
+                Array4 {
+                    one: Integer(7),
+                    two: 8,
+                    three: 'f',
+                    four: Some('g'),
+                }
+            )
         );
     }
 
