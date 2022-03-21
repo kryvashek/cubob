@@ -109,7 +109,7 @@ Here is the result (prettified to simplify reading):
     },
 }
 ```
-Type name for `Line` has been removed, but stayed for `Potin` - because due to call of `debug_map` (*debug_* !) it uses debug mode for outputting all entries, and provided `std::fmt::Display` implementation isn't even used.
+Type name for `Line` has been removed, but stayed for `Point` - because due to call of `debug_map` (*debug_* !) it uses debug mode for outputting all entries, and provided `std::fmt::Display` implementation isn't even used.
 Moreover, this approach puts `"` symbols around field names as they are treated like map keys, which is fair, but seems redundant in considered case.
 The next attempt will deal with both mentioned effect:
 ```rust
