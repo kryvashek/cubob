@@ -81,6 +81,16 @@ impl<'a, K: Debug + ?Sized, V: Debug + ?Sized> Debug for Field<'a, K, V> {
     }
 }
 
+/// Alternate mode to use while outputting.
+pub enum Alternate {
+    /// Output data in one line (matches Formatter::alternate() == false).
+    OneLine,
+    /// Output data in prettified format (matches Formatter::alternate() == true).
+    Pretty,
+    /// Output data in format regarding alternate mode of given Formatter examplar.
+    Inherit,
+}
+
 type StructEntrier<'t> = &'t dyn Fn(&mut DebugSet<'_, '_>, &dyn Display, &dyn Display);
 
 /// Lets to output some structure regarding the propagated value of output alternativeness.
@@ -99,10 +109,14 @@ impl<'a, 'b> StructShow<'a, 'b> {
     const NULL_ENTRIER: StructEntrier<'static> = &|_w, _k, _v| {};
 
     /// Creates one StructShow examplar starting its output.
-    pub fn new(formatter: &'a mut Formatter<'b>) -> Self {
-        let entrier = match formatter.alternate() {
-            true => Self::ALT_ENTRIER,
-            false => Self::USUAL_ENTRIER,
+    pub fn new(formatter: &'a mut Formatter<'b>, alternate: Alternate) -> Self {
+        let entrier = match alternate {
+            Alternate::OneLine => Self::USUAL_ENTRIER,
+            Alternate::Pretty => Self::ALT_ENTRIER,
+            Alternate::Inherit => match formatter.alternate() {
+                true => Self::ALT_ENTRIER,
+                false => Self::USUAL_ENTRIER,
+            },
         };
         Self {
             wrapper: formatter.debug_set(),
@@ -132,32 +146,40 @@ impl<'a, 'b> StructShow<'a, 'b> {
 
     /// Adds several key-value pair to the struct output from slice.
     pub fn fields(&mut self, fields: &[(&dyn Display, &dyn Display)]) -> &mut Self {
-        self.fields_from_iter(deref_iter(fields))
+        self.fields_from_iter(fields.iter().map(|(k, v)| (k, v)))
     }
 
     /// Adds several key-value pair to the struct output from iterator.
-    pub fn fields_from_iter<'c, I>(&mut self, fields: I) -> &mut Self
+    pub fn fields_from_iter<'c, K, V, I>(&mut self, fields: I) -> &mut Self
     where
-        I: Iterator<Item = (&'c dyn Display, &'c dyn Display)>,
+        K: Display + 'c,
+        V: Display + 'c,
+        I: Iterator<Item = (K, V)> + 'c,
     {
-        fields.for_each(|(key, val)| (self.entrier)(&mut self.wrapper, key, val));
+        fields.for_each(|(key, val)| (self.entrier)(&mut self.wrapper, &key, &val));
         self
     }
 }
 
 /// Performs the whole struct output routine from creation of StructShow examplar to finishing (for example see the module-level documentation).
-/// Works with slice.
+/// Works with slice, always inherits alternate mode.
 pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Display)]) -> FmtResult {
-    display_struct_from_iter(f, deref_iter(fields))
+    StructShow::new(f, Alternate::Inherit)
+        .fields(fields)
+        .finish()
 }
 
 /// Performs the whole struct output routine from creation of StructShow examplar to finishing.
-/// Works with iterator.
-pub fn display_struct_from_iter<'c, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
+/// Works with iterator, always inherits alternate mode.
+pub fn display_struct_from_iter<'c, K, V, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
 where
-    I: Iterator<Item = (&'c dyn Display, &'c dyn Display)>,
+    K: Display + 'c,
+    V: Display + 'c,
+    I: Iterator<Item = (K, V)> + 'c,
 {
-    StructShow::new(f).fields_from_iter(fields).finish()
+    StructShow::new(f, Alternate::Inherit)
+        .fields_from_iter(fields)
+        .finish()
 }
 
 type ListEntrier<'t> = &'t dyn Fn(&mut DebugList<'_, '_>, &dyn Display);
@@ -178,10 +200,14 @@ impl<'a, 'b> ListShow<'a, 'b> {
     const NULL_ENTRIER: ListEntrier<'static> = &|_w, _v| {};
 
     /// Creates one ListShow examplar starting its output.
-    pub fn new(formatter: &'a mut Formatter<'b>) -> Self {
-        let entrier = match formatter.alternate() {
-            true => Self::ALT_ENTRIER,
-            false => Self::USUAL_ENTRIER,
+    pub fn new(formatter: &'a mut Formatter<'b>, alternate: Alternate) -> Self {
+        let entrier = match alternate {
+            Alternate::OneLine => Self::USUAL_ENTRIER,
+            Alternate::Pretty => Self::ALT_ENTRIER,
+            Alternate::Inherit => match formatter.alternate() {
+                true => Self::ALT_ENTRIER,
+                false => Self::USUAL_ENTRIER,
+            },
         };
         Self {
             wrapper: formatter.debug_list(),
@@ -211,66 +237,36 @@ impl<'a, 'b> ListShow<'a, 'b> {
 
     /// Adds several items to the list output from slice.
     pub fn items(&mut self, items: &[&dyn Display]) -> &mut Self {
-        self.items_from_iter(deref_iter(items))
+        self.items_from_iter(items.iter())
     }
 
     /// Adds several items to the struct output from iterator.
-    pub fn items_from_iter<'c, I>(&mut self, items: I) -> &mut Self
+    pub fn items_from_iter<'c, T, I>(&mut self, items: I) -> &mut Self
     where
-        I: Iterator<Item = &'c dyn Display>,
+        T: Display + 'c,
+        I: Iterator<Item = T> + 'c,
     {
-        items.for_each(|val| (self.entrier)(&mut self.wrapper, val));
+        items.for_each(|val| (self.entrier)(&mut self.wrapper, &val));
         self
     }
 }
 
 /// Performs the whole list output routine from creation of ListShow examplar to finishing.
-/// Works with slice.
+/// Works with slice, always inherits alternate mode.
 pub fn display_list(f: &mut Formatter<'_>, items: &[&dyn Display]) -> FmtResult {
-    display_list_from_iter(f, deref_iter(items))
+    display_list_from_iter(f, items.iter())
 }
 
 /// Performs the whole list output routine from creation of ListShow examplar to finishing.
-/// Works with iterator.
-pub fn display_list_from_iter<'c, I>(f: &mut Formatter<'_>, items: I) -> FmtResult
+/// Works with iterator, always inherits alternate mode.
+pub fn display_list_from_iter<'c, T, I>(f: &mut Formatter<'_>, items: I) -> FmtResult
 where
-    I: Iterator<Item = &'c dyn Display>,
+    T: Display + 'c,
+    I: Iterator<Item = T> + 'c,
 {
-    ListShow::new(f).items_from_iter(items).finish()
-}
-
-fn deref_iter<'j, T, I>(values: I) -> impl Iterator<Item = T> + 'j
-where
-    T: Copy + 'j,
-    I: IntoIterator<Item = &'j T>,
-    I::IntoIter: 'j,
-{
-    values.into_iter().map(|vr| *vr)
-}
-
-/// Turns given (into)iterator over specified type into iterator over Display dyn refs.
-pub fn iter_items_as_display<'j, T, I>(values: I) -> impl Iterator<Item = &'j dyn Display>
-where
-    T: Display + 'j,
-    I: IntoIterator<Item = &'j T>,
-    I::IntoIter: 'j,
-{
-    values.into_iter().map(|vr| vr as &dyn Display)
-}
-
-/// Turns given (into)iterator over specified types pair into iterator over Display dyn refs pair.
-pub fn iter_fields_as_display<'j, K, V, I>(
-    values: I,
-) -> impl Iterator<Item = (&'j dyn Display, &'j dyn Display)>
-where
-    K: Display + 'j,
-    V: Display + 'j,
-    I: IntoIterator<Item = (&'j K, &'j V)>,
-    I::IntoIter: 'j,
-{
-    values
-        .into_iter()
-        .map(|(kr, vr)| (kr as &dyn Display, vr as &dyn Display))
+    ListShow::new(f, Alternate::Inherit)
+        .items_from_iter(items)
+        .finish()
 }
 
 #[cfg(test)]
@@ -323,7 +319,7 @@ mod tests {
 
     impl Display for Diverse {
         fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-            StructShow::new(f)
+            StructShow::new(f, Alternate::Inherit)
                 .fields(&[(&"a", &self.a), (&'b', &self.b), (&"c".to_owned(), &self.c)])
                 .field_opt(&"d", &self.d)
                 .field(&'e', &self.e)
@@ -342,7 +338,7 @@ mod tests {
 
     impl Display for Array4 {
         fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-            ListShow::new(f)
+            ListShow::new(f, Alternate::Inherit)
                 .items(&[&self.one, &self.two, &self.three])
                 .item_opt(&self.four)
                 .finish()
@@ -353,7 +349,7 @@ mod tests {
 
     impl Display for Hector {
         fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-            display_list_from_iter(f, iter_items_as_display(&self.0))
+            display_list_from_iter(f, self.0.iter())
         }
     }
 
@@ -361,7 +357,7 @@ mod tests {
 
     impl Display for Shmap {
         fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-            display_struct_from_iter(f, iter_fields_as_display(&self.0))
+            display_struct_from_iter(f, self.0.iter())
         }
     }
 
