@@ -151,7 +151,7 @@ pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Displ
     display_struct_from_iter(f, deref_iter(fields))
 }
 
-/// Performs the whole struct output routine from creation of StructShow examplar to finishing (for example see the module-level documentation).
+/// Performs the whole struct output routine from creation of StructShow examplar to finishing.
 /// Works with iterator.
 pub fn display_struct_from_iter<'c, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
 where
