@@ -11,3 +11,6 @@ categories = ["command-line-interface", "no-std", "rust-patterns"]
 
 [lib]
 crate-type = ["staticlib", "rlib"]
+
+[dev-dependencies]
+maplit = "1.0.2"

@@ -3,12 +3,12 @@
 //! ```
 //! use core::fmt::{Display, Formatter, Result as FmtResult};
 //! use cubob::display_struct;
-//! 
+//!
 //! struct Point {
 //!     x: i32,
 //!     y: i32,
 //! }
-//! 
+//!
 //! struct Line {
 //!     a: Point,
 //!     b: Point,
@@ -37,7 +37,7 @@
 //!         )
 //!     }
 //! }
-//! 
+//!
 //! fn main() {
 //!     let line = Line{ a: Point{ x: 0, y: 0}, b: Point{ x: 1, y: 1} };
 //!     println!("One-line: {}", line);
@@ -130,18 +130,34 @@ impl<'a, 'b> StructShow<'a, 'b> {
         self.wrapper.finish()
     }
 
-    /// Adds several key-value pair to the struct output.
+    /// Adds several key-value pair to the struct output from slice.
     pub fn fields(&mut self, fields: &[(&dyn Display, &dyn Display)]) -> &mut Self {
-        fields.iter().for_each(|(key, val)| {
-            (self.entrier)(&mut self.wrapper, key, val);
-        });
+        self.fields_from_iter(deref_iter(fields))
+    }
+
+    /// Adds several key-value pair to the struct output from iterator.
+    pub fn fields_from_iter<'c, I>(&mut self, fields: I) -> &mut Self
+    where
+        I: Iterator<Item = (&'c dyn Display, &'c dyn Display)>,
+    {
+        fields.for_each(|(key, val)| (self.entrier)(&mut self.wrapper, key, val));
         self
     }
 }
 
 /// Performs the whole struct output routine from creation of StructShow examplar to finishing (for example see the module-level documentation).
+/// Works with slice.
 pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Display)]) -> FmtResult {
-    StructShow::new(f).fields(fields).finish()
+    display_struct_from_iter(f, deref_iter(fields))
+}
+
+/// Performs the whole struct output routine from creation of StructShow examplar to finishing (for example see the module-level documentation).
+/// Works with iterator.
+pub fn display_struct_from_iter<'c, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
+where
+    I: Iterator<Item = (&'c dyn Display, &'c dyn Display)>,
+{
+    StructShow::new(f).fields_from_iter(fields).finish()
 }
 
 type ListEntrier<'t> = &'t dyn Fn(&mut DebugList<'_, '_>, &dyn Display);
@@ -193,18 +209,68 @@ impl<'a, 'b> ListShow<'a, 'b> {
         self.wrapper.finish()
     }
 
-    /// Adds several items to the list output.
-    pub fn items(&mut self, entries: &[&dyn Display]) -> &mut Self {
-        entries.iter().for_each(|val| {
-            (self.entrier)(&mut self.wrapper, val);
-        });
+    /// Adds several items to the list output from slice.
+    pub fn items(&mut self, items: &[&dyn Display]) -> &mut Self {
+        self.items_from_iter(deref_iter(items))
+    }
+
+    /// Adds several items to the struct output from iterator.
+    pub fn items_from_iter<'c, I>(&mut self, items: I) -> &mut Self
+    where
+        I: Iterator<Item = &'c dyn Display>,
+    {
+        items.for_each(|val| (self.entrier)(&mut self.wrapper, val));
         self
     }
 }
 
 /// Performs the whole list output routine from creation of ListShow examplar to finishing.
-pub fn display_list(f: &mut Formatter<'_>, entries: &[&dyn Display]) -> FmtResult {
-    ListShow::new(f).items(entries).finish()
+/// Works with slice.
+pub fn display_list(f: &mut Formatter<'_>, items: &[&dyn Display]) -> FmtResult {
+    display_list_from_iter(f, deref_iter(items))
+}
+
+/// Performs the whole list output routine from creation of ListShow examplar to finishing.
+/// Works with iterator.
+pub fn display_list_from_iter<'c, I>(f: &mut Formatter<'_>, items: I) -> FmtResult
+where
+    I: Iterator<Item = &'c dyn Display>,
+{
+    ListShow::new(f).items_from_iter(items).finish()
+}
+
+fn deref_iter<'j, T, I>(values: I) -> impl Iterator<Item = T> + 'j
+where
+    T: Copy + 'j,
+    I: IntoIterator<Item = &'j T>,
+    I::IntoIter: 'j,
+{
+    values.into_iter().map(|vr| *vr)
+}
+
+/// Turns given (into)iterator over specified type into iterator over Display dyn refs.
+pub fn iter_items_as_display<'j, T, I>(values: I) -> impl Iterator<Item = &'j dyn Display>
+where
+    T: Display + 'j,
+    I: IntoIterator<Item = &'j T>,
+    I::IntoIter: 'j,
+{
+    values.into_iter().map(|vr| vr as &dyn Display)
+}
+
+/// Turns given (into)iterator over specified types pair into iterator over Display dyn refs pair.
+pub fn iter_fields_as_display<'j, K, V, I>(
+    values: I,
+) -> impl Iterator<Item = (&'j dyn Display, &'j dyn Display)>
+where
+    K: Display + 'j,
+    V: Display + 'j,
+    I: IntoIterator<Item = (&'j K, &'j V)>,
+    I::IntoIter: 'j,
+{
+    values
+        .into_iter()
+        .map(|(kr, vr)| (kr as &dyn Display, vr as &dyn Display))
 }
 
 #[cfg(test)]
@@ -283,6 +349,22 @@ mod tests {
         }
     }
 
+    struct Hector(Vec<isize>);
+
+    impl Display for Hector {
+        fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+            display_list_from_iter(f, iter_items_as_display(&self.0))
+        }
+    }
+
+    struct Shmap(std::collections::BTreeMap<String, isize>);
+
+    impl Display for Shmap {
+        fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+            display_struct_from_iter(f, iter_fields_as_display(&self.0))
+        }
+    }
+
     #[test]
     fn display() {
         assert_eq!("key: value", &format!("{}", Field::new("key", "value")));
@@ -346,6 +428,21 @@ mod tests {
                 }
             )
         );
+        assert_eq!(
+            "[1, 2, 3, 4, 5]",
+            &format!("{}", Hector((1..6).into_iter().collect()))
+        );
+        assert_eq!(
+            "{0: 0, 1: 2, 3: 5}",
+            &format!(
+                "{}",
+                Shmap(maplit::btreemap! {
+                    "0".into() => 0,
+                    "1".into() => 2,
+                    "3".into() => 5,
+                })
+            )
+        )
     }
 
     #[test]
@@ -445,6 +542,31 @@ mod tests {
                     three: 'f',
                     four: Some('g'),
                 }
+            )
+        );
+        assert_eq!(
+            r#"[
+    1,
+    2,
+    3,
+    4,
+    5,
+]"#,
+            &format!("{:#}", Hector((1..6).into_iter().collect()))
+        );
+        assert_eq!(
+            r#"{
+    0: 0,
+    1: 2,
+    3: 5,
+}"#,
+            &format!(
+                "{:#}",
+                Shmap(maplit::btreemap! {
+                    "0".into() => 0,
+                    "1".into() => 2,
+                    "3".into() => 5,
+                })
             )
         );
     }
