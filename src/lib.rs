@@ -91,42 +91,59 @@ pub enum Alternate {
     Inherit,
 }
 
-type StructEntrier<'t> = &'t dyn Fn(&mut DebugSet<'_, '_>, &dyn Display, &dyn Display);
+type StructEntrier = fn(&mut DebugSet<'_, '_>, &dyn Display, &dyn Display);
+
+fn usual_struct_entrier(w: &mut DebugSet, k: &dyn Display, v: &dyn Display) {
+    w.entry(&format_args!("{}: {}", k, v));
+}
+
+fn alternative_struct_entrier(w: &mut DebugSet, k: &dyn Display, v: &dyn Display) {
+    w.entry(&format_args!("{}: {:#}", k, v));
+}
+
+fn null_struct_entrier(_: &mut DebugSet, _: &dyn Display, _: &dyn Display) {}
 
 /// Lets to output some structure regarding the propagated value of output alternativeness.
 pub struct StructShow<'a, 'b> {
     wrapper: DebugSet<'a, 'b>,
-    entrier: StructEntrier<'static>,
+    entrier: StructEntrier,
+    inherited_value: bool,
 }
 
 impl<'a, 'b> StructShow<'a, 'b> {
-    const USUAL_ENTRIER: StructEntrier<'static> = &|w, k, v| {
-        w.entry(&format_args!("{}: {}", k, v));
-    };
-    const ALT_ENTRIER: StructEntrier<'static> = &|w, k, v| {
-        w.entry(&format_args!("{}: {:#}", k, v));
-    };
-    const NULL_ENTRIER: StructEntrier<'static> = &|_w, _k, _v| {};
+    fn choose_entrier(alternate: Alternate, inherited_value: bool) -> StructEntrier {
+        match alternate {
+            Alternate::OneLine => usual_struct_entrier,
+            Alternate::Pretty => alternative_struct_entrier,
+            Alternate::Inherit => match inherited_value {
+                false => usual_struct_entrier,
+                true => alternative_struct_entrier,
+            }
+        }
+    }
 
     /// Creates one StructShow examplar starting its output.
     pub fn new(formatter: &'a mut Formatter<'b>, alternate: Alternate) -> Self {
-        let entrier = match alternate {
-            Alternate::OneLine => Self::USUAL_ENTRIER,
-            Alternate::Pretty => Self::ALT_ENTRIER,
-            Alternate::Inherit => match formatter.alternate() {
-                true => Self::ALT_ENTRIER,
-                false => Self::USUAL_ENTRIER,
-            },
-        };
+        let inherited_value = formatter.alternate();
+        let entrier = Self::choose_entrier(alternate, inherited_value);
         Self {
             wrapper: formatter.debug_set(),
             entrier,
+            inherited_value,
         }
     }
 
     /// Adds one key-value pair to the struct output.
     pub fn field(&mut self, key: &dyn Display, val: &dyn Display) -> &mut Self {
         (self.entrier)(&mut self.wrapper, key, val);
+        self
+    }
+
+    /// Adds one key-value pair to the struct output.
+    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
+    pub fn field_override(&mut self, key: &dyn Display, val: &dyn Display, alternate: Alternate) -> &mut Self {
+        let entrier = Self::choose_entrier(alternate, self.inherited_value);
+        entrier(&mut self.wrapper, key, val);
         self
     }
 
@@ -138,9 +155,18 @@ impl<'a, 'b> StructShow<'a, 'b> {
         self
     }
 
+    /// Adds one optional key-value pair to the struct output if its value matches Some(_).
+    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
+    pub fn field_opt_override<T: Display>(&mut self, key: &dyn Display, val: &Option<T>, alternate: Alternate) -> &mut Self {
+        if let Some(actual_value) = val {
+            self.field_override(key, actual_value, alternate);
+        }
+        self
+    }
+
     /// Finishes the struct output, returning the result.
     pub fn finish(&mut self) -> FmtResult {
-        self.entrier = Self::NULL_ENTRIER;
+        self.entrier = null_struct_entrier;
         self.wrapper.finish()
     }
 
@@ -202,7 +228,7 @@ pub struct ListShow<'a, 'b> {
 }
 
 impl<'a, 'b> ListShow<'a, 'b> {
-    fn choose_entrier(alternate: Alternate, inherited_value: bool) -> fn(&mut DebugList, &dyn Display) {
+    fn choose_entrier(alternate: Alternate, inherited_value: bool) -> ListEntrier {
         match alternate {
             Alternate::OneLine => usual_list_entrier,
             Alternate::Pretty => alternative_list_entrier,
