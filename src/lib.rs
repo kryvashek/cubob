@@ -182,42 +182,59 @@ where
         .finish()
 }
 
-type ListEntrier<'t> = &'t dyn Fn(&mut DebugList<'_, '_>, &dyn Display);
+type ListEntrier = fn(&mut DebugList<'_, '_>, &dyn Display);
+
+fn usual_list_entrier(w: &mut DebugList, v: &dyn Display) {
+    w.entry(&format_args!("{}", v));
+}
+
+fn alternative_list_entrier(w: &mut DebugList, v: &dyn Display) {
+    w.entry(&format_args!("{:#}", v));
+}
+
+fn null_list_entrier(_: &mut DebugList, _: &dyn Display) {}
 
 /// Lets to output some listed data regarding the propagated value of output alternativeness.
 pub struct ListShow<'a, 'b> {
     wrapper: DebugList<'a, 'b>,
-    entrier: ListEntrier<'static>,
+    entrier: ListEntrier,
+    inherited_value: bool,
 }
 
 impl<'a, 'b> ListShow<'a, 'b> {
-    const USUAL_ENTRIER: ListEntrier<'static> = &|w, v| {
-        w.entry(&format_args!("{}", v));
-    };
-    const ALT_ENTRIER: ListEntrier<'static> = &|w, v| {
-        w.entry(&format_args!("{:#}", v));
-    };
-    const NULL_ENTRIER: ListEntrier<'static> = &|_w, _v| {};
+    fn choose_entrier(alternate: Alternate, inherited_value: bool) -> fn(&mut DebugList, &dyn Display) {
+        match alternate {
+            Alternate::OneLine => usual_list_entrier,
+            Alternate::Pretty => alternative_list_entrier,
+            Alternate::Inherit => match inherited_value {
+                false => usual_list_entrier,
+                true => alternative_list_entrier,
+            }
+        }
+    }
 
     /// Creates one ListShow examplar starting its output.
     pub fn new(formatter: &'a mut Formatter<'b>, alternate: Alternate) -> Self {
-        let entrier = match alternate {
-            Alternate::OneLine => Self::USUAL_ENTRIER,
-            Alternate::Pretty => Self::ALT_ENTRIER,
-            Alternate::Inherit => match formatter.alternate() {
-                true => Self::ALT_ENTRIER,
-                false => Self::USUAL_ENTRIER,
-            },
-        };
+        let inherited_value = formatter.alternate();
+        let entrier = Self::choose_entrier(alternate, inherited_value);
         Self {
             wrapper: formatter.debug_list(),
             entrier,
+            inherited_value,
         }
     }
 
     /// Adds one item to the list output.
     pub fn item(&mut self, val: &dyn Display) -> &mut Self {
         (self.entrier)(&mut self.wrapper, val);
+        self
+    }
+
+    /// Adds one item to the list output.
+    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
+    pub fn item_override(&mut self, val: &dyn Display, alternate: Alternate) -> &mut Self {
+        let entrier = Self::choose_entrier(alternate, self.inherited_value);
+        entrier(&mut self.wrapper, val);
         self
     }
 
@@ -229,9 +246,18 @@ impl<'a, 'b> ListShow<'a, 'b> {
         self
     }
 
+    /// Adds one optional item to the list output if its value matches Some(_).
+    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
+    pub fn item_opt_override<T: Display>(&mut self, val: &Option<T>, alternate: Alternate) -> &mut Self {
+        if let Some(actual_value) = val {
+            self.item_override(actual_value, alternate);
+        }
+        self
+    }
+
     /// Finishes the list output, returning the result.
     pub fn finish(&mut self) -> FmtResult {
-        self.entrier = Self::NULL_ENTRIER;
+        self.entrier = null_list_entrier;
         self.wrapper.finish()
     }
 
