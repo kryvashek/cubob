@@ -1,8 +1,8 @@
+use super::Alternate;
 use core::{
     fmt::{DebugList, Display, Formatter, Result as FmtResult},
     format_args,
 };
-use super::Alternate;
 
 type ListEntrier = fn(&mut DebugList<'_, '_>, &dyn Display);
 
@@ -31,7 +31,7 @@ impl<'a, 'b> ListShow<'a, 'b> {
             Alternate::Inherit => match inherited_value {
                 false => usual_list_entrier,
                 true => alternative_list_entrier,
-            }
+            },
         }
     }
 
@@ -70,7 +70,11 @@ impl<'a, 'b> ListShow<'a, 'b> {
 
     /// Adds one optional item to the list output if its value matches Some(_).
     /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
-    pub fn item_opt_override<T: Display>(&mut self, val: &Option<T>, alternate: Alternate) -> &mut Self {
+    pub fn item_opt_override<T: Display>(
+        &mut self,
+        val: &Option<T>,
+        alternate: Alternate,
+    ) -> &mut Self {
         if let Some(actual_value) = val {
             self.item_override(actual_value, alternate);
         }

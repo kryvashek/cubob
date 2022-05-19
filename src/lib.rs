@@ -38,24 +38,21 @@
 //!     }
 //! }
 //!
-//! fn main() {
-//!     let line = Line{ a: Point{ x: 0, y: 0}, b: Point{ x: 1, y: 1} };
-//!     println!("One-line: {}", line);
-//!     println!("Prettified: {:#}", line);
-//! }
+//!let line = Line{ a: Point{ x: 0, y: 0}, b: Point{ x: 1, y: 1} };
+//!println!("One-line: {}", line);
+//!println!("Prettified: {:#}", line);
 //! ```
 
 mod field;
-mod r#struct;
 mod list;
+mod r#struct;
 
 #[cfg(test)]
 mod tests;
 
 pub use field::*;
-pub use r#struct::*;
 pub use list::*;
-
+pub use r#struct::*;
 
 /// Alternate mode to use while outputting.
 pub enum Alternate {

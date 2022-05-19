@@ -1,8 +1,8 @@
+use super::*;
 use core::{
     fmt::{Debug, Display, Formatter, Result as FmtResult},
     format_args,
 };
-use super::*;
 
 #[derive(Debug)]
 struct Integer(isize);
@@ -181,8 +181,8 @@ fn display_alternative() {
         &format!("{:#}", Field::new("coord", &Integer(-43)))
     );
     let point_output = r#"point: {
-r: Integer value '1',
-i: Integer value '2',
+    r: Integer value '1',
+    i: Integer value '2',
 }"#;
     assert_eq!(
         point_output,
@@ -190,16 +190,16 @@ i: Integer value '2',
     );
     assert_eq!(
         r#"{
-a: -1,
-b: z,
-c: 123456789,
-d: static string literal,
-e: Some text,
-f: Integer value '-19',
-g: {
-    r: Integer value '-3',
-    i: Integer value '4',
-},
+    a: -1,
+    b: z,
+    c: 123456789,
+    d: static string literal,
+    e: Some text,
+    f: Integer value '-19',
+    g: {
+        r: Integer value '-3',
+        i: Integer value '4',
+    },
 }"#,
         &format!(
             "{:#}",
@@ -216,14 +216,14 @@ g: {
     );
     assert_eq!(
         r#"{
-a: -1,
-b: z,
-c: 123456789,
-e: Some text,
-g: {
-    r: Integer value '-3',
-    i: Integer value '4',
-},
+    a: -1,
+    b: z,
+    c: 123456789,
+    e: Some text,
+    g: {
+        r: Integer value '-3',
+        i: Integer value '4',
+    },
 }"#,
         &format!(
             "{:#}",
@@ -240,9 +240,9 @@ g: {
     );
     assert_eq!(
         r#"[
-Integer value '5',
-6,
-e,
+    Integer value '5',
+    6,
+    e,
 ]"#,
         &format!(
             "{:#}",
@@ -256,10 +256,10 @@ e,
     );
     assert_eq!(
         r#"[
-Integer value '7',
-8,
-f,
-g,
+    Integer value '7',
+    8,
+    f,
+    g,
 ]"#,
         &format!(
             "{:#}",
@@ -273,19 +273,19 @@ g,
     );
     assert_eq!(
         r#"[
-1,
-2,
-3,
-4,
-5,
+    1,
+    2,
+    3,
+    4,
+    5,
 ]"#,
         &format!("{:#}", Hector((1..6).into_iter().collect()))
     );
     assert_eq!(
         r#"{
-0: 0,
-1: 2,
-3: 5,
+    0: 0,
+    1: 2,
+    3: 5,
 }"#,
         &format!(
             "{:#}",
@@ -330,17 +330,17 @@ fn debug_alternative() {
     );
     assert_eq!(
         r#""coord": Integer(
--43,
+    -43,
 )"#,
         &format!("{:#?}", Field::new("coord", &Integer(-43)))
     );
     let point_output = r#""point": Complex {
-r: Integer(
-    1,
-),
-i: Integer(
-    2,
-),
+    r: Integer(
+        1,
+    ),
+    i: Integer(
+        2,
+    ),
 }"#;
     assert_eq!(
         point_output,

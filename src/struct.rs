@@ -1,8 +1,8 @@
+use super::Alternate;
 use core::{
     fmt::{DebugSet, Display, Formatter, Result as FmtResult},
     format_args,
 };
-use super::Alternate;
 
 type StructEntrier = fn(&mut DebugSet<'_, '_>, &dyn Display, &dyn Display);
 
@@ -31,7 +31,7 @@ impl<'a, 'b> StructShow<'a, 'b> {
             Alternate::Inherit => match inherited_value {
                 false => usual_struct_entrier,
                 true => alternative_struct_entrier,
-            }
+            },
         }
     }
 
@@ -54,7 +54,12 @@ impl<'a, 'b> StructShow<'a, 'b> {
 
     /// Adds one key-value pair to the struct output.
     /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
-    pub fn field_override(&mut self, key: &dyn Display, val: &dyn Display, alternate: Alternate) -> &mut Self {
+    pub fn field_override(
+        &mut self,
+        key: &dyn Display,
+        val: &dyn Display,
+        alternate: Alternate,
+    ) -> &mut Self {
         let entrier = Self::choose_entrier(alternate, self.inherited_value);
         entrier(&mut self.wrapper, key, val);
         self
@@ -70,7 +75,12 @@ impl<'a, 'b> StructShow<'a, 'b> {
 
     /// Adds one optional key-value pair to the struct output if its value matches Some(_).
     /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
-    pub fn field_opt_override<T: Display>(&mut self, key: &dyn Display, val: &Option<T>, alternate: Alternate) -> &mut Self {
+    pub fn field_opt_override<T: Display>(
+        &mut self,
+        key: &dyn Display,
+        val: &Option<T>,
+        alternate: Alternate,
+    ) -> &mut Self {
         if let Some(actual_value) = val {
             self.field_override(key, actual_value, alternate);
         }
