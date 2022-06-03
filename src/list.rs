@@ -101,6 +101,11 @@ impl<'a, 'b> ListShow<'a, 'b> {
         items.for_each(|val| (self.entrier)(&mut self.wrapper, &val));
         self
     }
+
+    /// Returns value of `alternate()` of formatter used on struct examplar creation.
+    pub fn alternate(&self) -> bool {
+        self.inherited_value
+    }
 }
 
 /// Performs the whole list output routine from creation of ListShow examplar to finishing.
