@@ -108,6 +108,11 @@ impl<'a, 'b> StructShow<'a, 'b> {
         fields.for_each(|(key, val)| (self.entrier)(&mut self.wrapper, &key, &val));
         self
     }
+
+    /// Returns value of `alternate()` of formatter used on struct examplar creation.
+    pub fn alternate(&self) -> bool {
+        self.inherited_value
+    }
 }
 
 /// Performs the whole struct output routine from creation of StructShow examplar to finishing (for example see the module-level documentation).
