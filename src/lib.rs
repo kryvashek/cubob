@@ -43,7 +43,9 @@
 //!println!("Prettified: {:#}", line);
 //! ```
 
+mod embed;
 mod field;
+mod instant;
 mod list;
 mod pair;
 mod r#struct;
@@ -51,7 +53,9 @@ mod r#struct;
 #[cfg(test)]
 mod tests;
 
+pub use embed::*;
 pub use field::*;
+pub use instant::*;
 pub use list::*;
 pub use pair::*;
 pub use r#struct::*;
