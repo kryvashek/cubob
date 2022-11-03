@@ -1,4 +1,4 @@
-use super::{Alternate, Pair};
+use crate::{Alternate, Pair};
 use core::{
     fmt::{DebugSet, Display, Formatter, Result as FmtResult},
     format_args,
