@@ -1,4 +1,4 @@
-use super::Alternate;
+use super::{Alternate, Pair};
 use core::{
     fmt::{DebugSet, Display, Formatter, Result as FmtResult},
     format_args,
@@ -112,17 +112,18 @@ impl<'a, 'b> StructShow<'a, 'b> {
 
     /// Adds several key-value pair to the struct output from slice.
     pub fn fields(&mut self, fields: &[(&dyn Display, &dyn Display)]) -> &mut Self {
-        self.fields_from_iter(fields.iter().map(|(k, v)| (k, v)))
+        self.fields_from_iter(fields.iter())
     }
 
     /// Adds several key-value pair to the struct output from iterator.
-    pub fn fields_from_iter<'c, K, V, I>(&mut self, fields: I) -> &mut Self
+    pub fn fields_from_iter<'c, I>(&mut self, fields: I) -> &mut Self
     where
-        K: Display + 'c,
-        V: Display + 'c,
-        I: Iterator<Item = (K, V)> + 'c,
+        I: Iterator + 'c,
+        I::Item: Pair,
+        <I::Item as Pair>::Left: Display,
+        <I::Item as Pair>::Right: Display,
     {
-        fields.for_each(|(key, val)| (self.entrier)(&mut self.wrapper, &key, &val));
+        fields.for_each(|p| (self.entrier)(&mut self.wrapper, p.left(), p.rifgt()));
         self
     }
 
@@ -142,11 +143,12 @@ pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Displ
 
 /// Performs the whole struct output routine from creation of StructShow examplar to finishing.
 /// Works with iterator, always inherits alternate mode.
-pub fn display_struct_from_iter<'c, K, V, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
+pub fn display_struct_from_iter<'c, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
 where
-    K: Display + 'c,
-    V: Display + 'c,
-    I: Iterator<Item = (K, V)> + 'c,
+    I: Iterator + 'c,
+    I::Item: Pair,
+    <I::Item as Pair>::Left: Display,
+    <I::Item as Pair>::Right: Display,
 {
     StructShow::new(f, Alternate::Inherit)
         .fields_from_iter(fields)
