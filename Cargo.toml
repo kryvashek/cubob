@@ -1,6 +1,6 @@
 [package]
 name = "cubob"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2018"
 authors = ["Artyom Sakharilenko <kryvashek@gmail.com>"]
 description = "Structured output helpers for display mode "
@@ -14,3 +14,12 @@ crate-type = ["staticlib", "rlib"]
 
 [dev-dependencies]
 maplit = "1.0.2"
+
+[features]
+default = ["field", "list", "struct"]
+
+embed = []
+field = []
+instant = []
+list = []
+struct = []
