@@ -55,6 +55,7 @@ pub use list::*;
 pub use r#struct::*;
 
 /// Alternate mode to use while outputting.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Alternate {
     /// Output data in one line (matches Formatter::alternate() == false).
     OneLine,

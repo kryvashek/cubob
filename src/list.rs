@@ -16,6 +16,13 @@ fn alternative_list_entrier(w: &mut DebugList, v: &dyn Display) {
 
 fn null_list_entrier(_: &mut DebugList, _: &dyn Display) {}
 
+fn inherit_entrier(inherited_value: bool) -> ListEntrier {
+    match inherited_value {
+        false => usual_list_entrier,
+        true => alternative_list_entrier,
+    }
+}
+
 /// Lets to output some listed data regarding the propagated value of output alternativeness.
 pub struct ListShow<'a, 'b> {
     wrapper: DebugList<'a, 'b>,
@@ -28,10 +35,7 @@ impl<'a, 'b> ListShow<'a, 'b> {
         match alternate {
             Alternate::OneLine => usual_list_entrier,
             Alternate::Pretty => alternative_list_entrier,
-            Alternate::Inherit => match inherited_value {
-                false => usual_list_entrier,
-                true => alternative_list_entrier,
-            },
+            Alternate::Inherit => inherit_entrier(inherited_value),
         }
     }
 
@@ -46,6 +50,17 @@ impl<'a, 'b> ListShow<'a, 'b> {
         }
     }
 
+    /// Creates one ListShow examplar with Alternate::Inherit setting and starts its output.
+    pub fn inherit(formatter: &'a mut Formatter<'b>) -> Self {
+        let inherited_value = formatter.alternate();
+        let entrier = inherit_entrier(inherited_value);
+        Self {
+            wrapper: formatter.debug_list(),
+            entrier,
+            inherited_value,
+        }
+    }
+
     /// Adds one item to the list output.
     pub fn item(&mut self, val: &dyn Display) -> &mut Self {
         (self.entrier)(&mut self.wrapper, val);
@@ -53,10 +68,13 @@ impl<'a, 'b> ListShow<'a, 'b> {
     }
 
     /// Adds one item to the list output.
-    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
     pub fn item_override(&mut self, val: &dyn Display, alternate: Alternate) -> &mut Self {
-        let entrier = Self::choose_entrier(alternate, self.inherited_value);
-        entrier(&mut self.wrapper, val);
+        // Safety: since only specified subset of predefined functions can take place in self.entrier,
+        // and null_list_entrier is one of them, the comparison through pointer values is safe enough.
+        if null_list_entrier as usize != self.entrier as usize {
+            let entrier = Self::choose_entrier(alternate, self.inherited_value);
+            entrier(&mut self.wrapper, val);
+        }
         self
     }
 
@@ -69,7 +87,6 @@ impl<'a, 'b> ListShow<'a, 'b> {
     }
 
     /// Adds one optional item to the list output if its value matches Some(_).
-    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
     pub fn item_opt_override<T: Display>(
         &mut self,
         val: &Option<T>,

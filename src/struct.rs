@@ -16,6 +16,13 @@ fn alternative_struct_entrier(w: &mut DebugSet, k: &dyn Display, v: &dyn Display
 
 fn null_struct_entrier(_: &mut DebugSet, _: &dyn Display, _: &dyn Display) {}
 
+fn inherit_entrier(inherited_value: bool) -> StructEntrier {
+    match inherited_value {
+        false => usual_struct_entrier,
+        true => alternative_struct_entrier,
+    }
+}
+
 /// Lets to output some structure regarding the propagated value of output alternativeness.
 pub struct StructShow<'a, 'b> {
     wrapper: DebugSet<'a, 'b>,
@@ -28,10 +35,7 @@ impl<'a, 'b> StructShow<'a, 'b> {
         match alternate {
             Alternate::OneLine => usual_struct_entrier,
             Alternate::Pretty => alternative_struct_entrier,
-            Alternate::Inherit => match inherited_value {
-                false => usual_struct_entrier,
-                true => alternative_struct_entrier,
-            },
+            Alternate::Inherit => inherit_entrier(inherited_value),
         }
     }
 
@@ -46,6 +50,17 @@ impl<'a, 'b> StructShow<'a, 'b> {
         }
     }
 
+    /// Creates one StructShow examplar with Alternate::Inherit setting and starts its output.
+    pub fn inherit(formatter: &'a mut Formatter<'b>) -> Self {
+        let inherited_value = formatter.alternate();
+        let entrier = inherit_entrier(inherited_value);
+        Self {
+            wrapper: formatter.debug_set(),
+            entrier,
+            inherited_value,
+        }
+    }
+
     /// Adds one key-value pair to the struct output.
     pub fn field(&mut self, key: &dyn Display, val: &dyn Display) -> &mut Self {
         (self.entrier)(&mut self.wrapper, key, val);
@@ -53,15 +68,18 @@ impl<'a, 'b> StructShow<'a, 'b> {
     }
 
     /// Adds one key-value pair to the struct output.
-    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
     pub fn field_override(
         &mut self,
         key: &dyn Display,
         val: &dyn Display,
         alternate: Alternate,
     ) -> &mut Self {
-        let entrier = Self::choose_entrier(alternate, self.inherited_value);
-        entrier(&mut self.wrapper, key, val);
+        // Safety: since only specified subset of predefined functions can take place in self.entrier,
+        // and null_struct_entrier is one of them, the comparison through pointer values is safe enough.
+        if null_struct_entrier as usize != self.entrier as usize {
+            let entrier = Self::choose_entrier(alternate, self.inherited_value);
+            entrier(&mut self.wrapper, key, val);
+        }
         self
     }
 
@@ -74,7 +92,6 @@ impl<'a, 'b> StructShow<'a, 'b> {
     }
 
     /// Adds one optional key-value pair to the struct output if its value matches Some(_).
-    /// May cause unknown (I just unsure what will happen) behaviour if called after finish().
     pub fn field_opt_override<T: Display>(
         &mut self,
         key: &dyn Display,
