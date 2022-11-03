@@ -43,21 +43,33 @@
 //!println!("Prettified: {:#}", line);
 //! ```
 
+#[cfg(feature = "embed")]
 mod embed;
+#[cfg(feature = "field")]
 mod field;
+#[cfg(feature = "instant")]
 mod instant;
+#[cfg(feature = "list")]
 mod list;
+#[cfg(feature = "struct")]
 mod pair;
+#[cfg(feature = "struct")]
 mod r#struct;
 
-#[cfg(test)]
+#[cfg(all(test, feature = "list", feature = "struct", feature = "field"))]
 mod tests;
 
+#[cfg(feature = "embed")]
 pub use embed::*;
+#[cfg(feature = "field")]
 pub use field::*;
+#[cfg(feature = "instant")]
 pub use instant::*;
+#[cfg(feature = "list")]
 pub use list::*;
+#[cfg(feature = "struct")]
 pub use pair::*;
+#[cfg(feature = "struct")]
 pub use r#struct::*;
 
 /// Alternate mode to use while outputting.

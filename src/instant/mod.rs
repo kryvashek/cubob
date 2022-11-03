@@ -72,10 +72,16 @@
 //! println!("Prettified: {:#}", space);
 //! ```
 
+#[cfg(any(feature = "list", feature = "struct"))]
 mod iterable;
+#[cfg(feature = "list")]
 mod list;
+#[cfg(feature = "struct")]
 mod r#struct;
 
+#[cfg(any(feature = "list", feature = "struct"))]
 pub use iterable::*;
+#[cfg(feature = "list")]
 pub use list::*;
+#[cfg(feature = "struct")]
 pub use r#struct::*;

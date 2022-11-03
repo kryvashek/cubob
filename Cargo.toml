@@ -14,3 +14,12 @@ crate-type = ["staticlib", "rlib"]
 
 [dev-dependencies]
 maplit = "1.0.2"
+
+[features]
+default = ["field", "list", "struct"]
+
+embed = []
+field = []
+instant = []
+list = []
+struct = []
