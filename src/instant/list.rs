@@ -6,6 +6,7 @@ use core::{
 };
 
 /// Struct used to simplify displaying of any iterable lists.
+#[cfg_attr(docsrs, doc(cfg(all(feature = "list", feature = "instant"))))]
 pub struct InstantList<I, K> {
     alt: Alternate,
     val: I,

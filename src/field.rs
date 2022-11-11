@@ -4,13 +4,14 @@ use core::{
 };
 
 /// Lets to output key-value pair regarding the propagated value of output alternativeness.
+#[cfg_attr(docsrs, doc(cfg(feature = "field")))]
 pub struct Field<'a, K: ?Sized, V: ?Sized> {
     key: &'a K,
     val: &'a V,
 }
 
 impl<'a, K: ?Sized, V: ?Sized> Field<'a, K, V> {
-    /// Creates one Field examplar ready to be outputted.
+    /// Creates one [Field] examplar ready to be outputted.
     pub fn new(key: &'a K, val: &'a V) -> Self {
         Self { key, val }
     }

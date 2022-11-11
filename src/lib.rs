@@ -43,17 +43,25 @@
 //!println!("Prettified: {:#}", line);
 //! ```
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 #[cfg(feature = "embed")]
+#[cfg_attr(docsrs, doc(cfg(feature = "embed")))]
 mod embed;
 #[cfg(feature = "field")]
+#[cfg_attr(docsrs, doc(cfg(feature = "field")))]
 mod field;
 #[cfg(feature = "instant")]
+#[cfg_attr(docsrs, doc(cfg(feature = "instant")))]
 mod instant;
 #[cfg(feature = "list")]
+#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 mod list;
 #[cfg(feature = "struct")]
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod pair;
 #[cfg(feature = "struct")]
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod r#struct;
 
 #[cfg(all(test, feature = "list", feature = "struct", feature = "field"))]
@@ -75,10 +83,10 @@ pub use r#struct::*;
 /// Alternate mode to use while outputting.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Alternate {
-    /// Output data in one line (matches Formatter::alternate() == false).
+    /// Output data in one line (matches [Formatter][core::fmt::Formatter]::alternate() == false).
     OneLine,
-    /// Output data in prettified format (matches Formatter::alternate() == true).
+    /// Output data in prettified format (matches [Formatter][core::fmt::Formatter]::alternate() == true).
     Pretty,
-    /// Output data in format regarding alternate mode of given Formatter examplar.
+    /// Output data in format regarding alternate mode of given [Formatter][core::fmt::Formatter] examplar.
     Inherit,
 }
