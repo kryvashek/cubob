@@ -57,7 +57,9 @@ mod r#struct {
 }
 
 #[cfg(feature = "list")]
+#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 pub use list::*;
 
 #[cfg(feature = "struct")]
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 pub use r#struct::*;

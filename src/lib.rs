@@ -60,16 +60,22 @@ mod r#struct;
 mod tests;
 
 #[cfg(feature = "embed")]
+#[cfg_attr(docsrs, doc(cfg(feature = "embed")))]
 pub use embed::*;
 #[cfg(feature = "field")]
+#[cfg_attr(docsrs, doc(cfg(feature = "field")))]
 pub use field::*;
 #[cfg(feature = "instant")]
+#[cfg_attr(docsrs, doc(cfg(feature = "instant")))]
 pub use instant::*;
 #[cfg(feature = "list")]
+#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 pub use list::*;
 #[cfg(feature = "struct")]
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 pub use pair::*;
 #[cfg(feature = "struct")]
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 pub use r#struct::*;
 
 /// Alternate mode to use while outputting.
