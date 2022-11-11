@@ -24,6 +24,7 @@ fn inherit_entrier(inherited_value: bool) -> StructEntrier {
 }
 
 /// Lets to output some structure regarding the propagated value of output alternativeness.
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 pub struct StructShow<'a, 'b> {
     wrapper: DebugSet<'a, 'b>,
     entrier: StructEntrier,
@@ -39,7 +40,7 @@ impl<'a, 'b> StructShow<'a, 'b> {
         }
     }
 
-    /// Creates one StructShow examplar starting its output.
+    /// Creates one [StructShow] examplar starting its output.
     pub fn new(formatter: &'a mut Formatter<'b>, alternate: Alternate) -> Self {
         let inherited_value = formatter.alternate();
         let entrier = Self::choose_entrier(alternate, inherited_value);
@@ -50,7 +51,7 @@ impl<'a, 'b> StructShow<'a, 'b> {
         }
     }
 
-    /// Creates one StructShow examplar with Alternate::Inherit setting and starts its output.
+    /// Creates one [StructShow] examplar with [Alternate::Inherit] setting and starts its output.
     pub fn inherit(formatter: &'a mut Formatter<'b>) -> Self {
         let inherited_value = formatter.alternate();
         let entrier = inherit_entrier(inherited_value);
@@ -131,16 +132,18 @@ impl<'a, 'b> StructShow<'a, 'b> {
     }
 }
 
-/// Performs the whole struct output routine from creation of StructShow examplar to finishing (for example see the module-level documentation).
+/// Performs the whole struct output routine from creation of [StructShow] examplar to finishing (for example see the crate-level documentation).
 /// Works with slice, always inherits alternate mode.
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Display)]) -> FmtResult {
     StructShow::new(f, Alternate::Inherit)
         .fields(fields)
         .finish()
 }
 
-/// Performs the whole struct output routine from creation of StructShow examplar to finishing.
+/// Performs the whole struct output routine from creation of [StructShow] examplar to finishing.
 /// Works with iterator, always inherits alternate mode.
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 pub fn display_struct_from_iter<'c, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
 where
     I: Iterator + 'c,

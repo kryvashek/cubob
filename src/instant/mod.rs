@@ -73,18 +73,18 @@
 //! ```
 
 #[cfg(any(feature = "list", feature = "struct"))]
+#[cfg_attr(docsrs, doc(cfg(any(feature = "list", feature = "struct"))))]
 mod iterable;
 #[cfg(feature = "list")]
+#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 mod list;
 #[cfg(feature = "struct")]
+#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod r#struct;
 
 #[cfg(any(feature = "list", feature = "struct"))]
-#[cfg_attr(docsrs, doc(cfg(any(feature = "list", feature = "struct"))))]
 pub use iterable::*;
 #[cfg(feature = "list")]
-#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 pub use list::*;
 #[cfg(feature = "struct")]
-#[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 pub use r#struct::*;

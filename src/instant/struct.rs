@@ -6,6 +6,7 @@ use core::{
 };
 
 /// Struct used to simplify displaying of any iterable maps.
+#[cfg_attr(docsrs, doc(cfg(all(feature = "struct", feature = "instant"))))]
 pub struct InstantStruct<I, K> {
     alt: Alternate,
     val: I,

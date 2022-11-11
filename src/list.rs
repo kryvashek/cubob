@@ -24,6 +24,7 @@ fn inherit_entrier(inherited_value: bool) -> ListEntrier {
 }
 
 /// Lets to output some listed data regarding the propagated value of output alternativeness.
+#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 pub struct ListShow<'a, 'b> {
     wrapper: DebugList<'a, 'b>,
     entrier: ListEntrier,
@@ -39,7 +40,7 @@ impl<'a, 'b> ListShow<'a, 'b> {
         }
     }
 
-    /// Creates one ListShow examplar starting its output.
+    /// Creates one [ListShow] examplar starting its output.
     pub fn new(formatter: &'a mut Formatter<'b>, alternate: Alternate) -> Self {
         let inherited_value = formatter.alternate();
         let entrier = Self::choose_entrier(alternate, inherited_value);
@@ -50,7 +51,7 @@ impl<'a, 'b> ListShow<'a, 'b> {
         }
     }
 
-    /// Creates one ListShow examplar with Alternate::Inherit setting and starts its output.
+    /// Creates one [ListShow] examplar with [Alternate::Inherit] setting and starts its output.
     pub fn inherit(formatter: &'a mut Formatter<'b>) -> Self {
         let inherited_value = formatter.alternate();
         let entrier = inherit_entrier(inherited_value);
@@ -125,14 +126,16 @@ impl<'a, 'b> ListShow<'a, 'b> {
     }
 }
 
-/// Performs the whole list output routine from creation of ListShow examplar to finishing.
+/// Performs the whole list output routine from creation of [ListShow] examplar to finishing.
 /// Works with slice, always inherits alternate mode.
+#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 pub fn display_list(f: &mut Formatter<'_>, items: &[&dyn Display]) -> FmtResult {
     display_list_from_iter(f, items.iter())
 }
 
-/// Performs the whole list output routine from creation of ListShow examplar to finishing.
+/// Performs the whole list output routine from creation of [ListShow] examplar to finishing.
 /// Works with iterator, always inherits alternate mode.
+#[cfg_attr(docsrs, doc(cfg(feature = "list")))]
 pub fn display_list_from_iter<'c, T, I>(f: &mut Formatter<'_>, items: I) -> FmtResult
 where
     T: Display + 'c,

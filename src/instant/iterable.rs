@@ -1,35 +1,51 @@
 /// Special trait, generalizing all the types used to distinguish different types of iterable data sources.
-/// Those types can be either type, implementing IntoIterator and Copy (any reference on IntoIterator suits)
-/// or type, implementing Iterator and Clone.
-/// There can be some problems when type implements Iterator and Copy simultaneously: since every Iterator
-/// automatically implements IntoIterator, and Copy implementation requires Clone implementation too, such
-/// type will suit both alternatives and will cause conflict until explicit Kind specified.
-/// Trait is not sealed, so any user can define own kind and use it along with own Iterable implementation for that kind.
+/// Those types can be either type, implementing [IntoIterator] and [Copy] (so usual reference on [IntoIterator] suits)
+/// or type, implementing [Iterator] and [Clone].
+/// There can be some problems when type implements [Iterator] and [Copy] simultaneously: since every [Iterator]
+/// automatically implements [IntoIterator], and [Copy] implementation requires [Clone] implementation too, such
+/// type will suit both alternatives and will cause conflict until explicit [Kind] specified.
+/// Trait is not sealed, so any user can define own kind and use it along with own [Iterable] implementation for that kind.
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(any(feature = "list", feature = "struct"), feature = "instant")))
+)]
 pub trait Kind {}
 
-/// Type implementing Kind and used to mark types which are treated as IntoIterator and _not_ Iterator.
+/// Type implementing [Kind] and used to mark types which are treated as [IntoIterator] and _not_ [Iterator].
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(any(feature = "list", feature = "struct"), feature = "instant")))
+)]
 pub struct Source;
 
 impl Kind for Source {}
 
-/// Type implementing Kind and used to mark types which are treated as Iterator and _not_ IntoIterator.
+/// Type implementing [Kind] and used to mark types which are treated as [Iterator] and _not_ [IntoIterator].
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(any(feature = "list", feature = "struct"), feature = "instant")))
+)]
 pub struct Passage;
 
 impl Kind for Passage {}
 
-/// Trait used to generalize over IntoIterator+Copy and Iterator+Clone types.
-/// Actual used source is defined via type parameter which should implement Kind trait.
-/// There can be some problems when type implements Iterator and Copy simultaneously: since every Iterator
-/// automatically implements IntoIterator, and Copy implementation requires Clone implementation too, such
-/// type will suit both alternatives and will cause conflict until explicit Kind specified.
+/// Trait used to generalize over [IntoIterator]+[Copy] and [Iterator]+[Clone] types.
+/// Actual used source is defined via type parameter which should implement [Kind] trait.
+/// There can be some problems when type implements [Iterator] and Copy simultaneously: since every [Iterator]
+/// automatically implements [IntoIterator], and [Copy] implementation requires [Clone] implementation too, such
+/// type will suit both alternatives and will cause conflict until explicit [Kind] specified.
 /// Trait is not sealed, so any user can define own Iterable implementation.
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(any(feature = "list", feature = "struct"), feature = "instant")))
+)]
 pub trait Iterable<K: Kind> {
     type Iter: Iterator;
 
     fn iter(&self) -> Self::Iter;
 }
 
-/// Implementation of Iterable for IntoIterator+Copy types - mostly for references onto IntoIterator types.
+/// Implementation of [Iterable] for [IntoIterator]+[Copy] types - mostly for references onto [IntoIterator] types.
 impl<T: IntoIterator + Copy> Iterable<Source> for T {
     type Iter = <Self as IntoIterator>::IntoIter;
 
@@ -38,7 +54,7 @@ impl<T: IntoIterator + Copy> Iterable<Source> for T {
     }
 }
 
-/// Implementation of Iterable for Iterator+Clone types.
+/// Implementation of [Iterable] for [Iterator]+[Clone] types.
 impl<T: Iterator + Clone> Iterable<Passage> for T {
     type Iter = Self;
 
