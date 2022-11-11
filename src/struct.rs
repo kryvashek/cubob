@@ -1,4 +1,4 @@
-use crate::{Alternate, Pair};
+use crate::{Alternate, DisplayPair};
 use core::{
     fmt::{DebugSet, Display, Formatter, Result as FmtResult},
     format_args,
@@ -119,9 +119,7 @@ impl<'a, 'b> StructShow<'a, 'b> {
     pub fn fields_from_iter<'c, I>(&mut self, fields: I) -> &mut Self
     where
         I: Iterator + 'c,
-        I::Item: Pair,
-        <I::Item as Pair>::Left: Display,
-        <I::Item as Pair>::Right: Display,
+        I::Item: DisplayPair,
     {
         fields.for_each(|p| (self.entrier)(&mut self.wrapper, p.left(), p.rifgt()));
         self
@@ -146,9 +144,7 @@ pub fn display_struct(f: &mut Formatter<'_>, fields: &[(&dyn Display, &dyn Displ
 pub fn display_struct_from_iter<'c, I>(f: &mut Formatter<'_>, fields: I) -> FmtResult
 where
     I: Iterator + 'c,
-    I::Item: Pair,
-    <I::Item as Pair>::Left: Display,
-    <I::Item as Pair>::Right: Display,
+    I::Item: DisplayPair,
 {
     StructShow::new(f, Alternate::Inherit)
         .fields_from_iter(fields)

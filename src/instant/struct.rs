@@ -1,5 +1,5 @@
 use super::{Iterable, Kind};
-use crate::{Alternate, Pair, StructShow};
+use crate::{Alternate, DisplayPair, StructShow};
 use core::{
     fmt::{Display, Formatter, Result as FmtResult},
     marker::PhantomData,
@@ -40,9 +40,7 @@ impl<I, K> Display for InstantStruct<I, K>
 where
     K: Kind,
     I: Iterable<K>,
-    <I::Iter as Iterator>::Item: Pair,
-    <<I::Iter as Iterator>::Item as Pair>::Left: Display,
-    <<I::Iter as Iterator>::Item as Pair>::Right: Display,
+    <I::Iter as Iterator>::Item: DisplayPair,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         StructShow::new(f, self.alt)

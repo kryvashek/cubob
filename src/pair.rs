@@ -3,7 +3,7 @@ use core::fmt::Display;
 /// Trait used to generalize over tuples of displayable types
 /// and references onto such tuples.
 /// Trait is not sealed and can be implementd for any other needed type.
-pub trait Pair {
+pub trait DisplayPair {
     type Left: Display;
     type Right: Display;
 
@@ -11,7 +11,7 @@ pub trait Pair {
     fn rifgt(&self) -> &Self::Right;
 }
 
-impl<L: Display, R: Display> Pair for (L, R) {
+impl<L: Display, R: Display> DisplayPair for (L, R) {
     type Left = L;
     type Right = R;
 
@@ -24,7 +24,7 @@ impl<L: Display, R: Display> Pair for (L, R) {
     }
 }
 
-impl<L: Display, R: Display> Pair for &(L, R) {
+impl<L: Display, R: Display> DisplayPair for &(L, R) {
     type Left = L;
     type Right = R;
 
