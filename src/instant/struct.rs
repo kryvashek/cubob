@@ -49,3 +49,16 @@ where
             .finish()
     }
 }
+
+#[cfg(feature = "embed")]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "embed", feature = "struct", feature = "instant"))))]
+impl<I, K> crate::EmbedStruct for InstantStruct<I, K>
+where
+    K: Kind,
+    I: Iterable<K>,
+    <I::Iter as Iterator>::Item: DisplayPair,
+{
+    fn embed(&self, show: &mut StructShow) {
+        show.fields_from_iter(self.val.iter());
+    }
+}

@@ -49,3 +49,16 @@ where
             .finish()
     }
 }
+
+#[cfg(feature = "embed")]
+#[cfg_attr(docsrs, doc(cfg(all(feature = "embed", feature = "list", feature = "instant"))))]
+impl<I, K> crate::EmbedList for InstantList<I, K>
+where
+    K: Kind,
+    I: Iterable<K>,
+    <I::Iter as Iterator>::Item: Display,
+{
+    fn embed(&self, show: &mut ListShow) {
+        show.items_from_iter(self.val.iter());
+    }
+}
