@@ -63,6 +63,9 @@ mod pair;
 #[cfg(feature = "struct")]
 #[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod r#struct;
+#[cfg(feature = "table")]
+#[cfg_attr(docsrs, doc(cfg(feature = "table")))]
+mod table;
 
 #[cfg(all(test, feature = "list", feature = "struct", feature = "field"))]
 mod tests;
@@ -79,6 +82,8 @@ pub use list::*;
 pub use pair::*;
 #[cfg(feature = "struct")]
 pub use r#struct::*;
+#[cfg(feature = "table")]
+pub use table::*;
 
 /// Alternate mode to use while outputting.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
