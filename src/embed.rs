@@ -34,7 +34,7 @@ mod list {
 #[cfg(feature = "struct")]
 #[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod r#struct {
-    use crate::{Alternate, StructShow};
+    use crate::{Alternate, Row, StructShow};
     use core::fmt::{Formatter, Result as FmtResult};
 
     /// Trait letting to define embedding of implementing type struct output into other type struct output.
@@ -61,6 +61,21 @@ mod r#struct {
         alternate: Alternate,
     ) -> FmtResult {
         StructShow::new(formatter, alternate).embed(this).finish()
+    }
+
+    /// Implementation of [EmbedStruct] for any type implementing trait [Row].
+    /// This also gives an opportunity to implement Display for that type through [display_struct_from_embed].
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(all(feature = "embed", feature = "struct", feature = "table")))
+    )]
+    #[cfg(feature = "table")]
+    impl<R: Row> EmbedStruct for R {
+        fn embed(&self, show: &mut StructShow) {
+            R::KEYS.iter().enumerate().for_each(|(idx, key)| {
+                show.field_opt(key, &self.value(idx));
+            });
+        }
     }
 }
 
