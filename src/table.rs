@@ -116,7 +116,6 @@ where
     }
 }
 
-
 fn row_fmt<I, D>(mut cells: I, f: &mut Formatter<'_>) -> FmtResult
 where
     I: Iterator<Item = Cell<D>>,
@@ -153,12 +152,8 @@ fn keys_iter<R: Row>() -> impl Iterator<Item = &'static str> + 'static {
     R::KEYS.iter().copied()
 }
 
-fn keys_cells<'a, R: Row>(
-    sizes: &'a Vec<usize>,
-) -> impl Iterator<Item = Cell<&'static str>> + 'a {
-    keys_iter::<R>()
-        .zip(sizes.iter().copied())
-        .map(Cell::from)
+fn keys_cells<'a, R: Row>(sizes: &'a Vec<usize>) -> impl Iterator<Item = Cell<&'static str>> + 'a {
+    keys_iter::<R>().zip(sizes.iter().copied()).map(Cell::from)
 }
 
 fn values_iter<'a, R: Row + 'a>(row: &'a R) -> impl Iterator<Item = Option<&'a dyn Display>> + 'a {
@@ -169,9 +164,7 @@ fn values_cells<'a, R: Row + 'a>(
     row: &'a R,
     sizes: &'a Vec<usize>,
 ) -> impl Iterator<Item = Cell<&'a dyn Display>> + 'a {
-    values_iter(row)
-        .zip(sizes.iter().copied())
-        .map(Cell::from)
+    values_iter(row).zip(sizes.iter().copied()).map(Cell::from)
 }
 
 fn max_in_place((overall, current): (&mut usize, usize)) {
@@ -324,10 +317,7 @@ mod tests {
 
         impl Display for RowFiction {
             fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-                row_fmt(
-                    keys_and_sizes_to_cells(&["one", "two"], &[5, 6]),
-                    f,
-                )
+                row_fmt(keys_and_sizes_to_cells(&["one", "two"], &[5, 6]), f)
             }
         }
 
@@ -442,9 +432,9 @@ mod tests {
         let sizes = sizes_list(table.iter());
         let example = [
             1, // all values in column and its name have size less or equal to 1
-            2,
+            2, // all values in column and its name have size less or equal to 2
             1, // all values in column are missing, but key has size 1
-            2,
+            2, // all values in column and its name have size less or equal to 2
         ];
         assert_eq!(&example[..], &sizes);
     }

@@ -51,7 +51,10 @@ where
 }
 
 #[cfg(feature = "embed")]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "embed", feature = "struct", feature = "instant"))))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "embed", feature = "struct", feature = "instant")))
+)]
 impl<I, K> crate::EmbedStruct for InstantStruct<I, K>
 where
     K: Kind,

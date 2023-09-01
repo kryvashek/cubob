@@ -51,7 +51,10 @@ where
 }
 
 #[cfg(feature = "embed")]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "embed", feature = "list", feature = "instant"))))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "embed", feature = "list", feature = "instant")))
+)]
 impl<I, K> crate::EmbedList for InstantList<I, K>
 where
     K: Kind,
