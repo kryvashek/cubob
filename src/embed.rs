@@ -13,7 +13,10 @@ mod list {
 
     impl<'a, 'b> ListShow<'a, 'b> {
         /// Embeds given [EmbedList] implementing type examplar output into current output.
-        pub fn embed<E: EmbedList>(&mut self, embedding: &E) -> &mut Self {
+        pub fn embed<E>(&mut self, embedding: &E) -> &mut Self
+        where
+            E: EmbedList + ?Sized,
+        {
             embedding.embed(self);
             self
         }
@@ -46,7 +49,10 @@ mod r#struct {
 
     impl<'a, 'b> StructShow<'a, 'b> {
         /// Embeds given [EmbedStruct] implementing type examplar output into current output.
-        pub fn embed<E: EmbedStruct>(&mut self, embedding: &E) -> &mut Self {
+        pub fn embed<E>(&mut self, embedding: &E) -> &mut Self
+        where
+            E: EmbedStruct + ?Sized,
+        {
             embedding.embed(self);
             self
         }
