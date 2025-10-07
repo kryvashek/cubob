@@ -45,6 +45,9 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+#[cfg(feature = "custom")]
+#[cfg_attr(docsrs, doc(cfg(feature = "custom")))]
+mod custom;
 #[cfg(feature = "embed")]
 #[cfg_attr(docsrs, doc(cfg(feature = "embed")))]
 mod embed;
@@ -67,6 +70,8 @@ mod r#struct;
 #[cfg(all(test, feature = "list", feature = "struct", feature = "field"))]
 mod tests;
 
+#[cfg(feature = "custom")]
+pub use custom::*;
 #[cfg(feature = "embed")]
 pub use embed::*;
 #[cfg(feature = "field")]
