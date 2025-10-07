@@ -23,6 +23,7 @@ field = []
 instant = []
 list = []
 struct = []
+custom = []
 
 [package.metadata.docs.rs]
 all-features = true
