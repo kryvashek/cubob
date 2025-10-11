@@ -63,6 +63,9 @@ mod list;
 #[cfg(feature = "struct")]
 #[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod pair;
+#[cfg(feature = "params")]
+#[cfg_attr(docsrs, doc(cfg(feature = "params")))]
+mod params;
 #[cfg(feature = "struct")]
 #[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod r#struct;
@@ -82,6 +85,8 @@ pub use instant::*;
 pub use list::*;
 #[cfg(feature = "struct")]
 pub use pair::*;
+#[cfg(feature = "params")]
+pub use params::*;
 #[cfg(feature = "struct")]
 pub use r#struct::*;
 

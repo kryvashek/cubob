@@ -24,6 +24,7 @@ instant = []
 list = []
 struct = []
 custom = []
+params = []
 
 [package.metadata.docs.rs]
 all-features = true
