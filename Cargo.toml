@@ -25,6 +25,7 @@ list = []
 struct = []
 custom = []
 params = []
+path = ["params"]
 
 [package.metadata.docs.rs]
 all-features = true
