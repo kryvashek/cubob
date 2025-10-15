@@ -1,6 +1,6 @@
 [package]
 name = "cubob"
-version = "1.3.3"
+version = "1.3.4"
 edition = "2018"
 authors = ["Artyom Sakharilenko <kryvashek@gmail.com>"]
 description = "Structured output helpers for display mode "
