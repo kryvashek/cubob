@@ -45,6 +45,9 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+#[cfg(feature = "custom")]
+#[cfg_attr(docsrs, doc(cfg(feature = "custom")))]
+mod custom;
 #[cfg(feature = "embed")]
 #[cfg_attr(docsrs, doc(cfg(feature = "embed")))]
 mod embed;
@@ -60,6 +63,12 @@ mod list;
 #[cfg(feature = "struct")]
 #[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod pair;
+#[cfg(feature = "params")]
+#[cfg_attr(docsrs, doc(cfg(feature = "params")))]
+mod params;
+#[cfg(feature = "path")]
+#[cfg_attr(docsrs, doc(cfg(feature = "path")))]
+mod path;
 #[cfg(feature = "struct")]
 #[cfg_attr(docsrs, doc(cfg(feature = "struct")))]
 mod r#struct;
@@ -67,6 +76,8 @@ mod r#struct;
 #[cfg(all(test, feature = "list", feature = "struct", feature = "field"))]
 mod tests;
 
+#[cfg(feature = "custom")]
+pub use custom::*;
 #[cfg(feature = "embed")]
 pub use embed::*;
 #[cfg(feature = "field")]
@@ -77,6 +88,10 @@ pub use instant::*;
 pub use list::*;
 #[cfg(feature = "struct")]
 pub use pair::*;
+#[cfg(feature = "params")]
+pub use params::*;
+#[cfg(feature = "path")]
+pub use path::*;
 #[cfg(feature = "struct")]
 pub use r#struct::*;
 
