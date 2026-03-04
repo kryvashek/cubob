@@ -45,13 +45,16 @@ where
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         StructShow::new(f, self.alt)
-            .fields_from_iter(self.val.iter())
+            .fields_from_iter(self.val.iterate())
             .finish()
     }
 }
 
 #[cfg(feature = "embed")]
-#[cfg_attr(docsrs, doc(cfg(all(feature = "embed", feature = "struct", feature = "instant"))))]
+#[cfg_attr(
+    docsrs,
+    doc(cfg(all(feature = "embed", feature = "struct", feature = "instant")))
+)]
 impl<I, K> crate::EmbedStruct for InstantStruct<I, K>
 where
     K: Kind,
@@ -59,6 +62,6 @@ where
     <I::Iter as Iterator>::Item: DisplayPair,
 {
     fn embed(&self, show: &mut StructShow) {
-        show.fields_from_iter(self.val.iter());
+        show.fields_from_iter(self.val.iterate());
     }
 }

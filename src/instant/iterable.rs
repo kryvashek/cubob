@@ -31,10 +31,10 @@ impl Kind for Passage {}
 
 /// Trait used to generalize over [IntoIterator]+[Copy] and [Iterator]+[Clone] types.
 /// Actual used source is defined via type parameter which should implement [Kind] trait.
-/// There can be some problems when type implements [Iterator] and Copy simultaneously: since every [Iterator]
+/// There can be some problems when type implements [Iterator] and [Copy] simultaneously: since every [Iterator]
 /// automatically implements [IntoIterator], and [Copy] implementation requires [Clone] implementation too, such
 /// type will suit both alternatives and will cause conflict until explicit [Kind] specified.
-/// Trait is not sealed, so any user can define own Iterable implementation.
+/// Trait is not sealed, so any user can define own [Iterable] implementation.
 #[cfg_attr(
     docsrs,
     doc(cfg(all(any(feature = "list", feature = "struct"), feature = "instant")))
@@ -42,14 +42,14 @@ impl Kind for Passage {}
 pub trait Iterable<K: Kind> {
     type Iter: Iterator;
 
-    fn iter(&self) -> Self::Iter;
+    fn iterate(&self) -> Self::Iter;
 }
 
 /// Implementation of [Iterable] for [IntoIterator]+[Copy] types - mostly for references onto [IntoIterator] types.
 impl<T: IntoIterator + Copy> Iterable<Source> for T {
     type Iter = <Self as IntoIterator>::IntoIter;
 
-    fn iter(&self) -> Self::Iter {
+    fn iterate(&self) -> Self::Iter {
         IntoIterator::into_iter(*self)
     }
 }
@@ -58,7 +58,7 @@ impl<T: IntoIterator + Copy> Iterable<Source> for T {
 impl<T: Iterator + Clone> Iterable<Passage> for T {
     type Iter = Self;
 
-    fn iter(&self) -> Self::Iter {
+    fn iterate(&self) -> Self::Iter {
         self.clone()
     }
 }
